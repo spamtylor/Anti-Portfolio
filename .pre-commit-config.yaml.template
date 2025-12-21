@@ -1,0 +1,67 @@
+# Pre-commit Hook Configuration Template
+# Copy to .pre-commit-config.yaml and customize
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+
+  # File size checks
+  - repo: local
+    hooks:
+      - id: check-file-sizes
+        name: Check file sizes
+        entry: ./scripts/check-file-sizes.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # Linting (if using JavaScript/TypeScript)
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.0.0
+    hooks:
+      - id: eslint
+        files: \.(js|ts|jsx|tsx)$
+        types: [file]
+        additional_dependencies: ['eslint@9.0.0']
+
+  # Formatting (if using Prettier)
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0
+    hooks:
+      - id: prettier
+        files: \.(js|ts|jsx|tsx|json|md|yaml|yml)$
+
+  # Python (if using Python)
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        language_version: python3
+
+  # Security checks
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: ['-r', 'src/']
+
+  # Project validation
+  - repo: local
+    hooks:
+      - id: validate-project
+        name: Validate project
+        entry: ./scripts/validate.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+

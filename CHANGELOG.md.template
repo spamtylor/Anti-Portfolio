@@ -1,0 +1,68 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- New features that will be in next release
+
+### Changed
+- Changes to existing functionality
+
+### Deprecated
+- Features that will be removed in future
+
+### Removed
+- Removed features
+
+### Fixed
+- Bug fixes
+
+### Security
+- Security fixes
+
+---
+
+## [1.0.0] - YYYY-MM-DD
+
+### Added
+- Initial release
+- Feature X
+- Feature Y
+
+### Changed
+- N/A
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+### Fixed
+- N/A
+
+### Security
+- N/A
+
+---
+
+## Format Guidelines
+
+- **Added**: New features
+- **Changed**: Changes to existing functionality
+- **Deprecated**: Soon-to-be removed features
+- **Removed**: Removed features
+- **Fixed**: Bug fixes
+- **Security**: Security fixes
+
+Each change should:
+- Be in past tense ("Added feature" not "Add feature")
+- Include issue/PR number if applicable
+- Be clear and concise
+- Group related changes
+

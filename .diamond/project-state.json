@@ -1,0 +1,48 @@
+{
+  "version": "0.1.0",
+  "status": "active",
+  "phase": "foundation",
+  "lastUpdated": "2025-12-21T00:00:00Z",
+  "health": {
+    "overall": "healthy",
+    "components": {
+      "server": "not-started",
+      "tests": "not-started",
+      "docs": "in-progress",
+      "ci": "not-started"
+    }
+  },
+  "metrics": {
+    "testCoverage": 0,
+    "documentationCoverage": 25,
+    "buildSuccessRate": 100,
+    "openIssues": 0
+  },
+  "apiUsage": {
+    "requests": 0,
+    "tokens": 0,
+    "rateLimitHits": 0,
+    "lastReset": "2025-12-21T00:00:00Z",
+    "limits": {
+      "requestsPerMinute": 60,
+      "tokensPerRequest": 4000,
+      "dailyLimit": 100000
+    }
+  },
+  "dependencies": {
+    "runtime": {
+      "node": ">=18.0.0",
+      "python": ">=3.9.0"
+    },
+    "lastAudited": "2025-12-21T00:00:00Z",
+    "vulnerabilities": 0,
+    "outdated": 0
+  },
+  "tasks": {
+    "total": 0,
+    "inProgress": 0,
+    "blocked": 0,
+    "completed": 0
+  }
+}
+
