@@ -53,48 +53,51 @@ export const useCDPlayerSequence = create<CDPlayerStore>((set, get) => ({
     }),
 
   tick: (delta) => {
-    const { state, lidRotation, cdRotation, timer } = get();
+    const { state, timer, lidRotation, cdRotation } = get();
 
-    switch (state) {
-      case "OPENING":
-        if (lidRotation < Math.PI / 2.5) {
-          set({ lidRotation: lidRotation + delta * 2 });
-        } else {
-          set({ state: "WAITING_FOR_CD", lcdText: "INSERT DISC" });
-        }
-        break;
+    if (state === "IDLE") return;
 
-      case "LOADING":
-        // This state is triggered by BurntCD click
-        // BurntCD handles its own movement animation for now
-        // But we transition to CLOSING after a delay
-        if (timer > 1) {
-          set({ state: "CLOSING", lcdText: "CLOSING..." });
-        } else {
-          set({ timer: timer + delta });
-        }
-        break;
+    const newTimer = timer + delta;
+    set({ timer: newTimer });
 
-      case "CLOSING":
-        if (lidRotation > 0) {
-          set({ lidRotation: lidRotation - delta * 2 });
-        } else {
-          set({ state: "READING", lcdText: "READING...", timer: 0 });
-        }
-        break;
+    // Continuous CD Rotation (Simulating playback/read)
+    if (state === "READING" || state === "PLAYING") {
+      set({ cdRotation: cdRotation + delta * 20 });
+    }
 
-      case "READING":
-        set({ cdRotation: cdRotation + delta * 15 });
-        if (timer > 2) {
-          set({ state: "PLAYING", lcdText: "TRACK 01" });
-        } else {
-          set({ timer: timer + delta });
-        }
-        break;
+    // --- MILESTONE LOGIC (Section V) ---
+    // 0ms -> Lid starts opening (handled by loadRepo/setState)
+    // 500ms -> CD moves into player
+    // 1500ms -> Lid starts closing
+    // 2100ms -> Reading begins (LCD flicker)
+    // 5000ms -> Launch
 
-      case "PLAYING":
-        set({ cdRotation: cdRotation + delta * 20 });
-        break;
+    if (state === "OPENING") {
+      // Smooth open animation until 500ms
+      if (lidRotation < Math.PI / 3) {
+        set({ lidRotation: lidRotation + delta * 3 });
+      }
+      if (newTimer >= 0.5) {
+        set({ state: "LOADING", lcdText: "LOADING..." });
+      }
+    }
+
+    if (state === "LOADING" && newTimer >= 1.5) {
+      set({ state: "CLOSING", lcdText: "CLOSING..." });
+    }
+
+    if (state === "CLOSING") {
+      // Smooth close animation
+      if (lidRotation > 0) {
+        set({ lidRotation: lidRotation - delta * 4 });
+      }
+      if (newTimer >= 2.1) {
+        set({ state: "READING", lcdText: "READING..." });
+      }
+    }
+
+    if (state === "READING" && newTimer >= 5.0) {
+      set({ state: "PLAYING", lcdText: "PLAYING" });
     }
   },
 }));

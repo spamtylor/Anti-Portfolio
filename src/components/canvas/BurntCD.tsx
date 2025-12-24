@@ -22,32 +22,36 @@ export function BurntCD({ repo, index, onClick }: CDProps) {
 
   // Capture initial transform for return (if needed)
   useFrame((s, delta) => {
+    const timer = useCDPlayerSequence.getState().timer;
+
     if (groupRef.current && state === "IDLE") {
       initialPos.copy(groupRef.current.position);
       initialRot.copy(groupRef.current.rotation);
     }
 
     if (groupRef.current && state === "LOADING" && activeRepoId === repo.id) {
-      // Fly to CD Player position [0, 0.82, -5]
-      const targetPos = new THREE.Vector3(0, 0.82, -5);
-      groupRef.current.position.lerp(targetPos, delta * 4);
+      if (timer >= 0.5) {
+        // Fly to CD Player position [0, 0.82, -5]
+        const targetPos = new THREE.Vector3(0, 0.82, -5);
+        groupRef.current.position.lerp(targetPos, delta * 6);
 
-      // Flatten rotation to lie flat on the tray
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(
-        groupRef.current.rotation.x,
-        -Math.PI / 2,
-        delta * 4
-      );
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(
-        groupRef.current.rotation.y,
-        0,
-        delta * 4
-      );
-      groupRef.current.rotation.z = THREE.MathUtils.lerp(
-        groupRef.current.rotation.z,
-        0,
-        delta * 4
-      );
+        // Flatten rotation to lie flat on the tray
+        groupRef.current.rotation.x = THREE.MathUtils.lerp(
+          groupRef.current.rotation.x,
+          -Math.PI / 2,
+          delta * 6
+        );
+        groupRef.current.rotation.y = THREE.MathUtils.lerp(
+          groupRef.current.rotation.y,
+          0,
+          delta * 6
+        );
+        groupRef.current.rotation.z = THREE.MathUtils.lerp(
+          groupRef.current.rotation.z,
+          0,
+          delta * 6
+        );
+      }
     }
   });
 
@@ -86,15 +90,11 @@ export function BurntCD({ repo, index, onClick }: CDProps) {
         e.stopPropagation();
         if (useCDPlayerSequence.getState().state === "IDLE") {
           loadRepo(repo.id);
-          // Wait briefly for the lid to open before starting flight to player
-          setTimeout(() => {
-            useCDPlayerSequence.getState().setState("LOADING");
 
-            // Auto-navigate after mechanical sequence concludes
-            setTimeout(() => {
-              window.open(repo.html_url, "_blank");
-            }, 6000); // Wait for flight (1s) + close (1s) + read (3s) + buffer
-          }, 1000);
+          // Navigation launch exactly at 5000ms (Section V)
+          setTimeout(() => {
+            window.open(repo.html_url, "_blank");
+          }, 5000);
         }
       }}
       scale={hovered ? 1.05 : 1}

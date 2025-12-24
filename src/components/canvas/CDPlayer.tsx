@@ -94,18 +94,36 @@ export function CDPlayer() {
         <Text
           position={[0, 0.05, 0.12]}
           rotation={[-Math.PI / 4, 0, 0]}
-          fontSize={0.2}
+          fontSize={0.25}
           color="#39FF14"
-          font="https://fonts.gstatic.com/s/robotomono/v22/L0tkDF4m3GMw3p7_r6u7X_SncP9A8o6K.woff"
+          // Using VT323 via Google Fonts woff
+          font="https://fonts.gstatic.com/s/vt323/v17/pxiLyp0ihS9PC9G9.woff"
           anchorX="center"
           anchorY="middle"
+          fillOpacity={state === "READING" ? 0.7 + Math.random() * 0.3 : 1}
         >
           {lcdText}
         </Text>
       </group>
 
-      {/* 4. TACTILE BUTTONS (Recessed Metal) */}
-      <group position={[-2, 0.82, 3.5]}>
+      {/* 4. TACTILE BUTTONS (Section III.2) */}
+      <group position={[-1.8, 0.82, 3.5]}>
+        {/* Play/Pause (Iconic look) */}
+        <group position={[0, 0, 0]}>
+          <mesh position={[0, -0.05, 0]}>
+            <cylinderGeometry args={[0.45, 0.45, 0.1, 32]} />
+            <meshStandardMaterial color="#000" />
+          </mesh>
+          <mesh position={[0, 0.05, 0]}>
+            <cylinderGeometry args={[0.4, 0.4, 0.1, 32]} />
+            <meshStandardMaterial
+              color="#222"
+              metalness={0.8}
+              roughness={0.2}
+            />
+          </mesh>
+        </group>
+
         {/* Stop Button (Recessed) */}
         <group position={[-1.2, 0, 0]}>
           <mesh position={[0, -0.05, 0]}>
@@ -114,19 +132,27 @@ export function CDPlayer() {
           </mesh>
           <mesh position={[0, 0.05, 0]}>
             <cylinderGeometry args={[0.3, 0.3, 0.1, 32]} />
-            <meshStandardMaterial color="#990000" metalness={0.2} />
+            <meshStandardMaterial
+              color="#990000"
+              metalness={0.2}
+              roughness={0.1}
+            />
           </mesh>
         </group>
 
-        {/* Play/Pause (Iconic look) */}
-        <group position={[-0.2, 0, 0]}>
+        {/* Skip Forward */}
+        <group position={[1.2, 0, 0]}>
           <mesh position={[0, -0.05, 0]}>
-            <cylinderGeometry args={[0.45, 0.45, 0.1, 32]} />
+            <cylinderGeometry args={[0.35, 0.35, 0.1, 32]} />
             <meshStandardMaterial color="#000" />
           </mesh>
           <mesh position={[0, 0.05, 0]}>
-            <cylinderGeometry args={[0.4, 0.4, 0.1, 32]} />
-            <meshStandardMaterial color="#222" metalness={0.8} />
+            <cylinderGeometry args={[0.3, 0.3, 0.1, 32]} />
+            <meshStandardMaterial
+              color="#222"
+              metalness={0.8}
+              roughness={0.2}
+            />
           </mesh>
         </group>
       </group>

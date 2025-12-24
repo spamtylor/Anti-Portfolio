@@ -121,9 +121,54 @@ function Workbench() {
   );
 }
 
+function StickerWall() {
+  const stickers = useMemo(() => {
+    return [
+      {
+        pos: [-3, 2, -12],
+        rot: [0, 0, 0.1],
+        color: "#ffecb3",
+        text: "TODO: UNBREAK WEBGL",
+      },
+      {
+        pos: [0, 3, -12],
+        rot: [0, 0, -0.05],
+        color: "#e1f5fe",
+        text: "GITHUB_TOKEN_EXPIRED",
+      },
+      {
+        pos: [3, 2.5, -12],
+        rot: [0, 0, 0.2],
+        color: "#f8bbd0",
+        text: "ARCHIVE_V1_CRASHED",
+      },
+      {
+        pos: [-5, 4, -12],
+        rot: [0, 0, -0.1],
+        color: "#c8e6c9",
+        text: "1998_CORE_DRV",
+      },
+    ];
+  }, []);
+
+  return (
+    <group>
+      {stickers.map((s, i) => (
+        <Sticker
+          key={i}
+          position={s.pos as [number, number, number]}
+          rotation={s.rot as [number, number, number]}
+          color={s.color}
+          text={s.text}
+        />
+      ))}
+    </group>
+  );
+}
+
 function DeskLamp() {
   return (
-    <group position={[6, 0, -6]}>
+    <group position={[4, -0.4, -2]}>
       {/* Lamp Base */}
       <mesh position={[0, 0.1, 0]}>
         <cylinderGeometry args={[0.8, 1, 0.2, 32]} />
@@ -135,7 +180,7 @@ function DeskLamp() {
         <meshStandardMaterial color="#222" metalness={0.8} roughness={0.4} />
       </mesh>
       {/* Lamp Head */}
-      <group position={[0, 4, 2]} rotation={[Math.PI / 4, 0, 0]}>
+      <group position={[0, 4, 2]} rotation={[Math.PI / 3, 0, 0]}>
         <mesh>
           <cylinderGeometry args={[1, 0.6, 1.5, 32, 1, true]} />
           <meshStandardMaterial
@@ -153,9 +198,9 @@ function DeskLamp() {
         {/* Primary Lighting */}
         <spotLight
           position={[0, 0, 0]}
-          angle={0.6}
+          angle={0.8}
           penumbra={1}
-          intensity={250}
+          intensity={400}
           castShadow
           shadow-bias={-0.0001}
           color="#fff4e0"
