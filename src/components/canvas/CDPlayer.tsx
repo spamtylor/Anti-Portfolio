@@ -6,7 +6,8 @@ import * as THREE from "three";
 import { useCDPlayerSequence } from "@/hooks/useCDPlayerSequence";
 
 export function CDPlayer() {
-  const { lidRotation, cdRotation, lcdText, tick } = useCDPlayerSequence();
+  const { state, lidRotation, cdRotation, lcdText, tick } =
+    useCDPlayerSequence();
 
   useFrame((state, delta) => {
     tick(delta);
@@ -57,7 +58,13 @@ export function CDPlayer() {
       </group>
 
       {/* 3. SPINNING DISC (Inside) */}
-      <group position={[0, 0.82, 0]} rotation={[0, cdRotation, 0]}>
+      <group
+        position={[0, 0.82, 0]}
+        rotation={[0, cdRotation, 0]}
+        visible={
+          state !== "IDLE" && state !== "OPENING" && state !== "WAITING_FOR_CD"
+        }
+      >
         <mesh rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.2, 2.4, 64]} />
           <meshPhysicalMaterial
