@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { Text, Float } from "@react-three/drei";
 import * as THREE from "three";
 import { Repository } from "@/types";
+import { useCDPlayerSequence } from "@/hooks/useCDPlayerSequence";
 
 interface CDProps {
   repo: Repository;
@@ -13,6 +14,8 @@ interface CDProps {
 }
 
 export function BurntCD({ repo, index, onClick }: CDProps) {
+  const loadRepo = useCDPlayerSequence((s) => s.loadRepo);
+  const setState = useCDPlayerSequence((s) => s.setState);
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -42,7 +45,16 @@ export function BurntCD({ repo, index, onClick }: CDProps) {
       }}
       onClick={(e) => {
         e.stopPropagation();
-        onClick(repo);
+        loadRepo(repo.id);
+
+        // Mechanical Sequence Flow
+        setTimeout(() => {
+          setState("CLOSING");
+          setTimeout(() => {
+            // After reading, open the link
+            window.open(repo.html_url, "_blank");
+          }, 3000);
+        }, 2000);
       }}
       scale={hovered ? 1.05 : 1}
     >

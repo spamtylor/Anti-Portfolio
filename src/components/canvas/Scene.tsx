@@ -7,6 +7,7 @@ import {
   OrbitControls,
   ContactShadows,
   Text,
+  MeshReflectorMaterial,
 } from "@react-three/drei";
 import { Repository } from "@/types";
 import { BurntCD } from "./BurntCD";
@@ -61,10 +62,22 @@ function DustParticles() {
 function Workbench() {
   return (
     <group position={[0, -0.02, 0]}>
-      {/* Heavy Steel/Wood Table */}
-      <mesh receiveShadow>
+      {/* Mahogany Reflective Table */}
+      <mesh receiveShadow position={[0, 0, 0]}>
         <boxGeometry args={[25, 0.1, 25]} />
-        <meshStandardMaterial color="#080808" roughness={0.9} metalness={0.2} />
+        <MeshReflectorMaterial
+          mirror={0.4}
+          resolution={1024}
+          mixStrength={0.5}
+          roughness={0.7}
+          metalness={0.2}
+          color="#1a120b"
+          blur={[300, 100]}
+          mixBlur={1}
+          depthScale={1.2}
+          minDepthThreshold={0.4}
+          maxDepthThreshold={1.4}
+        />
       </mesh>
 
       {/* Industrial Scratches */}
@@ -79,12 +92,12 @@ function Workbench() {
           rotation={[0, Math.random() * Math.PI, 0]}
         >
           <planeGeometry args={[Math.random() * 2, 0.01]} />
-          <meshBasicMaterial color="#1a1a1a" transparent opacity={0.4} />
+          <meshBasicMaterial color="#332211" transparent opacity={0.3} />
         </mesh>
       ))}
 
-      {/* Oily Stains */}
-      {[...Array(10)].map((_, i) => (
+      {/* Oily Stains (Simulated Shimmer) */}
+      {[...Array(12)].map((_, i) => (
         <mesh
           key={`stain-${i}`}
           position={[
@@ -96,13 +109,58 @@ function Workbench() {
         >
           <circleGeometry args={[Math.random() * 1.5, 32]} />
           <meshStandardMaterial
-            color="#000"
+            color="#1a0f08"
             transparent
-            opacity={0.6}
-            roughness={0.1}
+            opacity={0.4}
+            metalness={0.8}
+            roughness={0.05}
           />
         </mesh>
       ))}
+    </group>
+  );
+}
+
+function DeskLamp() {
+  return (
+    <group position={[6, 0, -6]}>
+      {/* Lamp Base */}
+      <mesh position={[0, 0.1, 0]}>
+        <cylinderGeometry args={[0.8, 1, 0.2, 32]} />
+        <meshStandardMaterial color="#222" metalness={0.8} roughness={0.4} />
+      </mesh>
+      {/* Lamp Arm */}
+      <mesh position={[0, 2, 0]}>
+        <boxGeometry args={[0.2, 4, 0.2]} />
+        <meshStandardMaterial color="#222" metalness={0.8} roughness={0.4} />
+      </mesh>
+      {/* Lamp Head */}
+      <group position={[0, 4, 2]} rotation={[Math.PI / 4, 0, 0]}>
+        <mesh>
+          <cylinderGeometry args={[1, 0.6, 1.5, 32, 1, true]} />
+          <meshStandardMaterial
+            color="#333"
+            side={THREE.DoubleSide}
+            metalness={0.9}
+            roughness={0.2}
+          />
+        </mesh>
+        {/* Physical Bulb */}
+        <mesh position={[0, -0.2, 0]}>
+          <sphereGeometry args={[0.3, 16, 16]} />
+          <meshBasicMaterial color="#fff4e0" />
+        </mesh>
+        {/* Primary Lighting */}
+        <spotLight
+          position={[0, 0, 0]}
+          angle={0.6}
+          penumbra={1}
+          intensity={250}
+          castShadow
+          shadow-bias={-0.0001}
+          color="#fff4e0"
+        />
+      </group>
     </group>
   );
 }
@@ -165,84 +223,95 @@ function Sticker({
 }
 
 export default function GraveyardCanvas({ repos }: { repos: Repository[] }) {
+  const pcMonitorRef = useRef<THREE.PointLight>(null);
+
+  // Procedural scattering logic
+  const scatteredRepos = useMemo(() => {
+    return repos.map((repo, i) => {
+      // Avoid a perfect circle, use spiral + noise
+      const angle = i * 0.8 + (Math.random() - 0.5) * 0.5;
+      const radius = 4 + i * 0.4 + Math.random() * 1.5;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      return {
+        ...repo,
+        pos: [x, 0.05, z] as [number, number, number],
+        rot: [0, Math.random() * Math.PI * 2, 0] as [number, number, number],
+      };
+    });
+  }, [repos]);
+
+  useFrame((state) => {
+    if (pcMonitorRef.current) {
+      // Flickering PC Monitor Light (Ambient Blue Pulse)
+      const flicker =
+        Math.sin(state.clock.elapsedTime * 15) * 5 +
+        Math.sin(state.clock.elapsedTime * 3) * 10;
+      pcMonitorRef.current.intensity = 20 + flicker;
+    }
+  });
+
   return (
     <Canvas
       shadows
-      camera={{ position: [8, 8, 12], fov: 35 }}
+      camera={{ position: [9, 7, 11], fov: 35 }}
       gl={{
         antialias: true,
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.2,
+        toneMappingExposure: 1.0,
       }}
     >
-      <color attach="background" args={["#020202"]} />
+      <color attach="background" args={["#050505"]} />
 
-      {/* Cinematic Lighting */}
-      <ambientLight intensity={0.1} />
+      <ambientLight intensity={0.05} />
 
-      <spotLight
-        position={[5, 12, 5]}
-        angle={0.2}
-        penumbra={1}
-        intensity={180}
-        castShadow
-        shadow-bias={-0.0001}
-        shadow-mapSize={[2048, 2048]}
-        color="#fff4e0"
+      {/* PC Monitor Ambient Flicker */}
+      <pointLight
+        ref={pcMonitorRef}
+        position={[-8, 4, -8]}
+        distance={20}
+        color="#0066ff"
       />
 
-      <pointLight position={[-10, 5, -5]} intensity={40} color="#0044ff" />
-      <pointLight position={[0, 2, 10]} intensity={20} color="#ff4400" />
-
+      <DeskLamp />
       <Workbench />
       <CDPlayer />
       <HeadphoneCable />
       <DustParticles />
 
-      {/* Scattered CDs */}
+      {/* Organically Scattered CDs */}
       <group>
-        {repos.map((repo, i) => {
-          const angle = (i / repos.length) * Math.PI * 2;
-          const radius = 6.5 + Math.random() * 2;
-          const x = Math.cos(angle) * radius;
-          const z = Math.sin(angle) * radius;
-
-          return (
-            <group
-              key={repo.id}
-              position={[x, 0.05, z]}
-              rotation={[0, Math.random() * Math.PI * 2, 0]}
-            >
-              <BurntCD
-                repo={repo}
-                index={i}
-                onClick={(r) => window.open(r.html_url, "_blank")}
-              />
-            </group>
-          );
-        })}
+        {scatteredRepos.map((repo, i) => (
+          <group key={repo.id} position={repo.pos} rotation={repo.rot}>
+            <BurntCD
+              repo={repo}
+              index={i}
+              onClick={(r) => window.open(r.html_url, "_blank")}
+            />
+          </group>
+        ))}
       </group>
 
-      {/* Metal Edge Bracket */}
-      <mesh position={[0, -0.05, 10]}>
-        <boxGeometry args={[50, 0.1, 0.5]} />
-        <meshStandardMaterial color="#222" metalness={1} roughness={0.3} />
+      {/* Metal Edge Bracket / Table Edge */}
+      <mesh position={[0, -0.05, 12]}>
+        <boxGeometry args={[50, 0.2, 0.8]} />
+        <meshStandardMaterial color="#111" metalness={1} roughness={0.2} />
       </mesh>
 
       <ContactShadows
-        opacity={1}
-        scale={20}
-        blur={2.5}
-        far={2}
+        opacity={0.8}
+        scale={25}
+        blur={2}
+        far={4}
         resolution={1024}
         color="#000000"
       />
 
       <OrbitControls
         minPolarAngle={0}
-        maxPolarAngle={Math.PI / 2.3}
-        maxDistance={15}
-        minDistance={5}
+        maxPolarAngle={Math.PI / 2.1}
+        maxDistance={18}
+        minDistance={4}
       />
 
       <Environment preset="night" blur={0.8} />

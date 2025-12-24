@@ -10,31 +10,32 @@
     "maintenance": "node scripts/maintenance-hooks.js"
   },
   "dependencies": {
-    "next": "14.2.16",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "three": "^0.170.0",
-    "@types/three": "^0.170.0",
-    "@react-three/fiber": "^8.17.10",
+    "@ai-sdk/google": "^0.0.55",
     "@react-three/drei": "^9.117.3",
+    "@react-three/fiber": "^8.17.10",
+    "@types/three": "^0.170.0",
+    "ai": "^3.4.33",
+    "clsx": "^2.1.1",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.460.0",
+    "next": "14.2.16",
     "octokit": "^4.0.2",
-    "ai": "^3.4.33",
-    "@ai-sdk/google": "^0.0.55",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.5.4"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.4",
+    "three": "^0.170.0",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "autoprefixer": "^10.4.19",
     "eslint": "^8",
     "eslint-config-next": "14.2.16",
-    "autoprefixer": "^10.4.19"
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
   },
   "overrides": {
     "react": "$react",

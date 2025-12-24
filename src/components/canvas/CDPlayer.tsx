@@ -1,10 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
 import { MeshTransmissionMaterial, Text } from "@react-three/drei";
 import * as THREE from "three";
+import { useCDPlayerSequence } from "@/hooks/useCDPlayerSequence";
 
 export function CDPlayer() {
+  const { lidRotation, cdRotation, lcdText, tick } = useCDPlayerSequence();
+
+  useFrame((state, delta) => {
+    tick(delta);
+  });
+
   return (
     <group position={[0, 0, -5]}>
       {/* 1. MAIN CHASSIS (Heavy Matte Plastic) */}
@@ -13,15 +20,15 @@ export function CDPlayer() {
         <meshStandardMaterial color="#0d0d0d" roughness={0.9} metalness={0.1} />
       </mesh>
 
-      {/* Chassis Top Plate (Slightly smaller for a seam check) */}
+      {/* Chassis Top Plate */}
       <mesh position={[0, 0.81, 0]}>
         <boxGeometry args={[9.95, 0.02, 7.95]} />
         <meshStandardMaterial color="#111" metalness={0.5} roughness={0.4} />
       </mesh>
 
-      {/* 2. THE LID (Hinged look) */}
-      <group position={[0, 0.8, -0.5]}>
-        <mesh castShadow receiveShadow position={[0, 0.1, 0.5]}>
+      {/* 2. THE LID (Mechanical Hinge) */}
+      <group position={[0, 0.8, -3.4]} rotation={[-lidRotation, 0, 0]}>
+        <mesh castShadow receiveShadow position={[0, 0.09, 3.4]}>
           <boxGeometry args={[9.4, 0.18, 6.8]} />
           <meshStandardMaterial
             color="#1a1a1a"
@@ -31,55 +38,62 @@ export function CDPlayer() {
         </mesh>
 
         {/* Metal Trim around Window */}
-        <mesh position={[0, 0.2, 0.5]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh position={[0, 0.2, 3.4]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[2.5, 2.7, 64]} />
           <meshStandardMaterial color="#444" metalness={1} roughness={0.2} />
         </mesh>
 
-        {/* Transparent Window (High Fidelity) */}
-        <mesh position={[0, 0.21, 0.5]} rotation={[-Math.PI / 2, 0, 0]}>
+        {/* Transparent Window (Smoked) */}
+        <mesh position={[0, 0.21, 3.4]} rotation={[-Math.PI / 2, 0, 0]}>
           <circleGeometry args={[2.5, 64]} />
           <meshPhysicalMaterial
-            color="#444"
-            transmission={0.9}
-            thickness={2}
+            color="#222"
+            transmission={0.8}
+            thickness={1}
             roughness={0.1}
             ior={1.5}
-            clearcoat={1}
-            attenuationColor="#ffffff"
-            attenuationDistance={1}
           />
         </mesh>
       </group>
 
-      {/* 3. LCD SEGMENT DISPLAY */}
-      <group position={[3, 0.65, 3.55]}>
+      {/* 3. SPINNING DISC (Inside) */}
+      <group position={[0, 0.82, 0]} rotation={[0, cdRotation, 0]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.2, 2.4, 64]} />
+          <meshPhysicalMaterial
+            color="#adb5bd"
+            metalness={1}
+            roughness={0.1}
+            iridescence={1}
+            iridescenceIOR={1.4}
+            iridescenceThicknessRange={[200, 500]}
+          />
+        </mesh>
+      </group>
+
+      {/* 4. LCD SEGMENT DISPLAY */}
+      <group position={[3.5, 0.65, 3.55]}>
         {/* Beveled Screen Inset */}
         <mesh rotation={[-Math.PI / 4, 0, 0]}>
-          <planeGeometry args={[2.6, 1.3]} />
+          <planeGeometry args={[2.8, 1.4]} />
           <meshStandardMaterial color="#000" />
         </mesh>
         {/* LCD Backlight */}
         <mesh position={[0, 0.02, 0.05]} rotation={[-Math.PI / 4, 0, 0]}>
-          <planeGeometry args={[2.4, 1.1]} />
+          <planeGeometry args={[2.6, 1.2]} />
           <meshBasicMaterial color="#39FF14" transparent opacity={0.15} />
-        </mesh>
-        {/* The Grid / Pixels (Simulated) */}
-        <mesh position={[0, 0.03, 0.08]} rotation={[-Math.PI / 4, 0, 0]}>
-          <planeGeometry args={[2.2, 0.9]} />
-          <meshBasicMaterial color="#000" transparent opacity={0.2} />
         </mesh>
 
         <Text
           position={[0, 0.05, 0.12]}
           rotation={[-Math.PI / 4, 0, 0]}
-          fontSize={0.25}
+          fontSize={0.2}
           color="#39FF14"
           font="https://fonts.gstatic.com/s/robotomono/v22/L0tkDF4m3GMw3p7_r6u7X_SncP9A8o6K.woff"
           anchorX="center"
           anchorY="middle"
         >
-          LOAD_SECTOR_0
+          {lcdText}
         </Text>
       </group>
 
