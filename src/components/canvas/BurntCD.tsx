@@ -14,12 +14,50 @@ interface CDProps {
 }
 
 export function BurntCD({ repo, index, onClick }: CDProps) {
-  const loadRepo = useCDPlayerSequence((s) => s.loadRepo);
-  const setState = useCDPlayerSequence((s) => s.setState);
+  const { state, activeRepoId, loadRepo, setState } = useCDPlayerSequence();
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
+  const [initialPos] = useState(() => new THREE.Vector3());
+  const [initialRot] = useState(() => new THREE.Euler());
 
-  // Random marker colors (Blue, Red, Green, Black)
+  // Capture initial transform for return (if needed)
+  useFrame((s, delta) => {
+    if (groupRef.current && state === "IDLE") {
+      initialPos.copy(groupRef.current.position);
+      initialRot.copy(groupRef.current.rotation);
+    }
+
+    if (groupRef.current && state === "LOADING" && activeRepoId === repo.id) {
+      // Fly to CD Player position [0, 0.82, -5]
+      const targetPos = new THREE.Vector3(0, 0.82, -5);
+      groupRef.current.position.lerp(targetPos, delta * 4);
+
+      // Flatten rotation to lie flat on the tray
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(
+        groupRef.current.rotation.x,
+        -Math.PI / 2,
+        delta * 4
+      );
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(
+        groupRef.current.rotation.y,
+        0,
+        delta * 4
+      );
+      groupRef.current.rotation.z = THREE.MathUtils.lerp(
+        groupRef.current.rotation.z,
+        0,
+        delta * 4
+      );
+    }
+  });
+
+  // Hide CD when it's "inside" and lid is closing/locked
+  const visible = !(
+    activeRepoId === repo.id &&
+    (state === "CLOSING" || state === "READING" || state === "PLAYING")
+  );
+
+  // Random marker colors
   const markerColors = ["#0c0c0c", "#1a2a6c", "#b21f1f", "#1b4d3e"];
   const markerColor = markerColors[index % markerColors.length];
 
@@ -29,6 +67,7 @@ export function BurntCD({ repo, index, onClick }: CDProps) {
       radius: 0.3 + i * 0.18,
       roughness: 0.1 + Math.random() * 0.4,
       opacity: 0.05 + Math.random() * 0.15,
+      scuff: Math.random() > 0.7, // Random scuffs on data layer
     }));
   }, []);
 
@@ -45,18 +84,21 @@ export function BurntCD({ repo, index, onClick }: CDProps) {
       }}
       onClick={(e) => {
         e.stopPropagation();
-        loadRepo(repo.id);
-
-        // Mechanical Sequence Flow
-        setTimeout(() => {
-          setState("CLOSING");
+        if (useCDPlayerSequence.getState().state === "IDLE") {
+          loadRepo(repo.id);
+          // Wait briefly for the lid to open before starting flight to player
           setTimeout(() => {
-            // After reading, open the link
-            window.open(repo.html_url, "_blank");
-          }, 3000);
-        }, 2000);
+            useCDPlayerSequence.getState().setState("LOADING");
+
+            // Auto-navigate after mechanical sequence concludes
+            setTimeout(() => {
+              window.open(repo.html_url, "_blank");
+            }, 6000); // Wait for flight (1s) + close (1s) + read (3s) + buffer
+          }, 1000);
+        }
       }}
       scale={hovered ? 1.05 : 1}
+      visible={visible}
     >
       <Float speed={2} rotationIntensity={0.2} floatIntensity={0.2}>
         {/* === THE CD === */}
@@ -90,15 +132,15 @@ export function BurntCD({ repo, index, onClick }: CDProps) {
             />
           </mesh>
 
-          {/* High-Density Data Pits (Simulated with multiple thin rings) */}
+          {/* High-Density Data Pits + Scuffs */}
           {dataRings.map((ring, i) => (
             <mesh key={i} position={[0, 0, 0.002]}>
               <ringGeometry args={[ring.radius, ring.radius + 0.02, 64]} />
               <meshStandardMaterial
                 transparent
-                opacity={ring.opacity}
-                color="#000"
-                roughness={ring.roughness}
+                opacity={ring.scuff ? 0.3 : ring.opacity}
+                color={ring.scuff ? "#fff" : "#000"} // Scuffs are white/silver
+                roughness={ring.scuff ? 0.8 : ring.roughness}
               />
             </mesh>
           ))}
@@ -142,11 +184,11 @@ export function BurntCD({ repo, index, onClick }: CDProps) {
 
           {/* Shadow/Bleed Text (offset slightly for that thick ink look) */}
           <Text
-            position={[0.005, -0.001, 0.505]}
+            position={[0.008, -0.002, 0.508]}
             rotation={[-Math.PI / 2, 0, (Math.random() - 0.5) * 0.1]}
             fontSize={0.24}
             color={markerColor}
-            fillOpacity={0.3}
+            fillOpacity={0.4}
             maxWidth={2.2}
             textAlign="center"
             font="https://fonts.gstatic.com/s/caveat/v18/Wn7xhaU3vXYnBP8Eb6r6DDRY686p.woff"
@@ -166,20 +208,27 @@ export function BurntCD({ repo, index, onClick }: CDProps) {
             V{(index + 1.2).toFixed(1)} BUILD // {new Date().getFullYear()}
           </Text>
 
-          {/* Sharpie Scribbles (Randomized) */}
-          <group
-            position={[0.7, -0.001, 0.2]}
-            rotation={[0, Math.random() * Math.PI, 0]}
-          >
-            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <planeGeometry args={[0.4, 0.05]} />
-              <meshBasicMaterial
-                color={markerColor}
-                opacity={0.4}
-                transparent
-              />
-            </mesh>
-          </group>
+          {/* Sharpie Scribbles (Organic Grit) */}
+          {[...Array(3)].map((_, i) => (
+            <group
+              key={i}
+              position={[
+                (Math.random() - 0.5) * 2,
+                -0.001,
+                (Math.random() - 0.5) * 2,
+              ]}
+              rotation={[0, Math.random() * Math.PI, 0]}
+            >
+              <mesh rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[Math.random() * 0.6, 0.03]} />
+                <meshBasicMaterial
+                  color={markerColor}
+                  opacity={0.3}
+                  transparent
+                />
+              </mesh>
+            </group>
+          ))}
         </group>
       </Float>
     </group>

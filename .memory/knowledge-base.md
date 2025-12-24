@@ -149,6 +149,14 @@ This file accumulates patterns, learnings, and best practices discovered during 
 
 ---
 
+### 3. Mechanical Animation State Machine
+
+- **Global Store**: `useCDPlayerSequence.ts` (Zustand).
+- **States**: `IDLE` -> `OPENING` -> `WAITING_FOR_CD` -> `LOADING` -> `CLOSING` -> `READING` -> `PLAYING`.
+- **Interpolation**: Use `useFrame` delta for frame-rate independent mechanical movement.
+
+---
+
 ## Tips & Tricks
 
 ### Tip 1: [Topic]
