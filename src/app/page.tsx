@@ -6,7 +6,7 @@ export default async function PortfolioPage() {
   const repos = await getAllRepos(username);
 
   return (
-    <main className="w-full h-screen relative bg-[#050505] font-mono overflow-hidden selection:bg-neon-green selection:text-black">
+    <main className="w-full h-screen relative bg-[#050505] font-mono overflow-hidden selection:bg-neon-green selection:text-black scanline-crt">
       {/* Header with Xerox Effect */}
       <div className="absolute top-10 left-10 z-10 pointer-events-none">
         <div className="bg-white text-black px-6 py-2 transform -rotate-1 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">

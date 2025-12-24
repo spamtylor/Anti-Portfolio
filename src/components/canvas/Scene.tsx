@@ -14,6 +14,7 @@ import { BurntCD } from "./BurntCD";
 import * as THREE from "three";
 
 import { CDPlayer } from "./CDPlayer";
+import { useCDPlayerSequence } from "@/hooks/useCDPlayerSequence";
 
 interface SceneProps {
   repos: Repository[];
@@ -267,20 +268,71 @@ function Sticker({
   );
 }
 
+function CameraController() {
+  const { state, timer } = useCDPlayerSequence();
+  const widePos = new THREE.Vector3(9, 7, 11);
+  const zoomPos = new THREE.Vector3(4, 3, 2); // Tight on the LCD/Buttons
+  const wideTarget = new THREE.Vector3(0, 0, -2);
+  const zoomTarget = new THREE.Vector3(3.5, 0.65, 3.55);
+
+  useFrame((s, delta) => {
+    // Determine the focus factor (0 = wide, 1 = zoom)
+    // Zoom starts during LOADING (500ms) and peaks at READING (2100ms)
+    let focus = 0;
+    if (timer >= 0.5) focus = THREE.MathUtils.smoothstep(timer, 0.5, 2.1);
+
+    // Lerp camera position
+    s.camera.position.lerp(focus > 0.5 ? zoomPos : widePos, delta * 2);
+
+    // Jitter/Shake if LOADING or CLOSING
+    if (state === "LOADING" || state === "CLOSING") {
+      s.camera.position.x += (Math.random() - 0.5) * 0.05;
+      s.camera.position.y += (Math.random() - 0.5) * 0.05;
+    }
+
+    // Look at target
+    const target = new THREE.Vector3().lerpVectors(
+      wideTarget,
+      zoomTarget,
+      focus
+    );
+    s.camera.lookAt(target);
+  });
+
+  return null;
+}
+
 export default function GraveyardCanvas({ repos }: { repos: Repository[] }) {
   const pcMonitorRef = useRef<THREE.PointLight>(null);
 
   // Procedural scattering logic
   const scatteredRepos = useMemo(() => {
     return repos.map((repo, i) => {
-      // Avoid a perfect circle, use spiral + noise
-      const angle = i * 0.8 + (Math.random() - 0.5) * 0.5;
-      const radius = 4 + i * 0.4 + Math.random() * 1.5;
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
+      // Clumping logic: CDs group together in "piles" or "clusters"
+      const clusterSize = 5;
+      const clusterIndex = Math.floor(i / clusterSize);
+
+      // Cluster centers (3-4 points on the desk)
+      const centers = [
+        [-5, 0.05, -3],
+        [5, 0.05, -1],
+        [-2, 0.05, 4],
+        [6, 0.05, 5],
+      ];
+
+      const center = centers[clusterIndex % centers.length];
+
+      // Sprawl within cluster
+      const sprawl = 2.5;
+      const x = center[0] + (Math.random() - 0.5) * sprawl;
+      const z = center[2] + (Math.random() - 0.5) * sprawl;
+
+      // Vertical stacking if they overlap significantly (simulated)
+      const y = 0.05 + (i % clusterSize) * 0.005;
+
       return {
         ...repo,
-        pos: [x, 0.05, z] as [number, number, number],
+        pos: [x, y, z] as [number, number, number],
         rot: [0, Math.random() * Math.PI * 2, 0] as [number, number, number],
       };
     });
@@ -309,6 +361,7 @@ export default function GraveyardCanvas({ repos }: { repos: Repository[] }) {
       <color attach="background" args={["#050505"]} />
 
       <ambientLight intensity={0.05} />
+      <CameraController />
 
       {/* PC Monitor Ambient Flicker */}
       <pointLight
@@ -320,6 +373,7 @@ export default function GraveyardCanvas({ repos }: { repos: Repository[] }) {
 
       <DeskLamp />
       <Workbench />
+      <StickerWall />
       <CDPlayer />
       <HeadphoneCable />
       <DustParticles />
